@@ -1,0 +1,42 @@
+{
+  "self_check": {
+    "trials": 20,
+    "all_pass": true
+  },
+  "random_circuit_correctness": {
+    "trials": 60,
+    "all_pass": true
+  },
+  "scaling": [
+    {
+      "n": 10,
+      "gates": 10,
+      "eval_decrypt_seconds": 3.9e-05,
+      "correct": true
+    },
+    {
+      "n": 100,
+      "gates": 100,
+      "eval_decrypt_seconds": 0.000108,
+      "correct": true
+    },
+    {
+      "n": 1000,
+      "gates": 1000,
+      "eval_decrypt_seconds": 0.000784,
+      "correct": true
+    },
+    {
+      "n": 10000,
+      "gates": 10000,
+      "eval_decrypt_seconds": 0.007633,
+      "correct": true
+    }
+  ],
+  "confidentiality": {
+    "n": 6,
+    "trials": 4000,
+    "max_dev_from_uniform": 0.004875000000000001,
+    "max_dev_x0_vs_x1": 0.006749999999999999
+  }
+}

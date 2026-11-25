@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="David S. (dspaid)" />
+  <title>UP-QFHE: Uncloneable Quantum Fully Homomorphic Encryption of Classical Data via a Single Pad Register</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    div.abstract {
+      margin: 2em 2em 2em 2em;
+      text-align: left;
+      font-size: 85%;
+    }
+    div.abstract-title {
+      font-weight: bold;
+      text-align: center;
+      padding: 0;
+      margin-bottom: 0.5em;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="/usr/share/javascript/mathjax/MathJax.js"
+  type="text/javascript"></script>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title"><strong>UP-QFHE: Uncloneable Quantum Fully Homomorphic
+Encryption<br />
+of Classical Data via a Single Pad Register</strong></h1>
+<p class="author">David S. (dspaid)</p>
+<p class="date">November 2026 — code and experiments at <a
+href="https://github.com/dspaid/dail-bnty-0736"
+class="uri">https://github.com/dspaid/dail-bnty-0736</a></p>
+<div class="abstract">
+<div class="abstract-title">Abstract</div>
+<p>We give a one-time, private-key quantum fully homomorphic encryption
+scheme for classical messages and classical circuits over <span
+class="math inline">\(\{\mathsf{NOT},\mathsf{AND}\}\)</span> in which
+the secret of a classical one-time pad is stored in an <em>uncloneable
+quantum register</em>: <span class="math inline">\(n\)</span> BB84
+qubits prepared with a random basis key <span
+class="math inline">\(\theta\)</span>. Because the encrypted payload is
+always a computational-basis state, homomorphic evaluation is <em>exact
+at any depth</em> — no noise, no bootstrapping, no lattice assumption —
+and the evaluator’s entire view (the padded transcript) is shown to be
+identically distributed for every message, i.e. input confidentiality is
+information-theoretic. What cannot be duplicated is the pad register: we
+analyse the key-revealing splitting game in which one ciphertext is
+split between two isolated parties who are both then shown <span
+class="math inline">\(\theta\)</span> and must decrypt. The one-bit game
+value is <em>exactly <span class="math inline">\(3/4\)</span></em> over
+all quantum attacks; the proof is a complete dual-certificate argument
+carried out in this paper (<span class="math inline">\(Y=\tfrac38
+I_2\)</span> feasible, gap matrix positive semidefinite with an exact
+rational spectrum) matched by an explicit optimal Kraus pair, and
+tensoring gives <span class="math inline">\(p_n^\ast = (3/4)^n\)</span>
+for joint attacks on <span class="math inline">\(n\)</span> bits. Every
+claim is backed by runnable code in the accompanying repository: the
+full test suite, two seeded experiment scripts, and the resulting JSON
+logs reproduce every number quoted here on a clean machine with no API
+keys.</p>
+</div>
+</header>
+<h1 id="introduction">Introduction</h1>
+<p>Uncloneable encryption — encrypting so that a single ciphertext
+cannot be copied into two halves that both decrypt correctly after the
+key is revealed — has a long lineage from Wiesner’s conjugate coding
+through the formal game of Broadbent and Lord <span class="citation"
+data-cites="bl20"></span>, who showed that uncloneable encryption needs
+oracles for general messages. A wave of recent work removed the
+assumptions: Ananth and Sahai <span class="citation"
+data-cites="as26"></span> gave an unconditional one-bit scheme,
+Bhattacharyya, Broadbent and Culf <span class="citation"
+data-cites="bbc26"></span> upgraded it to statistically secure
+encryption of arbitrary messages, and Broadbent, Culf and Rochette <span
+class="citation" data-cites="bcr26"></span> mapped the landscape of
+untelegraphable encryption with optimal bounds. On a parallel track,
+Broadbent and Jeffery <span class="citation" data-cites="bj15"></span>
+defined quantum homomorphic encryption of <em>classical</em> circuits
+(QFHE): quantum ciphertexts carrying classical data that a quantum
+evaluator processes without learning the data.</p>
+<p>This paper fuses the two lines at their simplest points and works the
+quantitative details out completely. The object is a one-time
+private-key QFHE scheme whose one-time-pad secret lives in an
+uncloneable register: <em>the thing the homomorphic evaluator must not
+be able to duplicate is exactly the pad</em>. Two properties are proved
+and verified by code:</p>
+<ul>
+<li><p><strong>Exact unbounded-depth evaluation.</strong> The payload
+register is always a <span
+class="math inline">\(\{|0\rangle,|1\rangle\}\)</span>-basis state, so a
+circuit over <span
+class="math inline">\(\{\mathsf{NOT},\mathsf{AND}\}\)</span> can be
+evaluated by physically driving the payload qubits and, equivalently, by
+simulating the <em>padded transcript</em> <span
+class="math inline">\(C(x \oplus a)\)</span> classically (Definition <a
+href="#def:eval" data-reference-type="ref"
+data-reference="def:eval">3</a>). Theorem <a href="#thm:secret"
+data-reference-type="ref" data-reference="thm:secret">4</a> shows the
+transcript distribution is identical for all messages <span
+class="math inline">\(x\)</span>: perfect input confidentiality, one
+time, unconditionally. (Correspondingly, the scheme is not
+<em>compact</em>: the transcript is the price of exact non-linear
+evaluation without an oracle.)</p></li>
+<li><p><strong>Quantified uncloneability.</strong> In the key-revealing
+splitting game (Definition <a href="#def:game" data-reference-type="ref"
+data-reference="def:game">7</a>) the adversary holds one ciphertext,
+splits it by any quantum operation, and two isolated parties — each
+shown <span class="math inline">\(\theta\)</span> — must both recover
+the message. Theorem <a href="#thm:value" data-reference-type="ref"
+data-reference="thm:value">10</a> proves the one-bit value is exactly
+<span class="math inline">\(3/4\)</span>: the explicit dual certificate
+<span class="math inline">\(Y = \tfrac38 I_2\)</span> (Appendix <a
+href="#app:cert" data-reference-type="ref"
+data-reference="app:cert">6</a>) bounds every attack from above, and an
+explicit trace-preserving Kraus pair, displayed in the proof, attains
+it. Corollary <a href="#cor:nbit" data-reference-type="ref"
+data-reference="cor:nbit">11</a> upgrades this to <span
+class="math inline">\(p_n^\ast = (3/4)^n\)</span> for arbitrary joint
+attacks on <span class="math inline">\(n\)</span> ciphertext qubits.
+Naive strategies get only <span
+class="math inline">\((5/8)^n\)</span>.</p></li>
+</ul>
+<p>The scope is deliberately narrow (Section <a href="#sec:scope"
+data-reference-type="ref" data-reference="sec:scope">5</a>): classical
+messages, one-time use, private key, <span
+class="math inline">\(\{\mathsf{NOT},\mathsf{AND}\}\)</span> circuits,
+and security against a splitting adversary with honest decoders. Within
+that scope every statement is fully proved and every constant is
+computed by the repository’s code rather than quoted from elsewhere.</p>
+<h4 id="related-work.">Related work.</h4>
+<p>Conjugate-coding uncloneability goes back to Wiesner;
+Bennett–Wiesner <span class="citation" data-cites="bw84"></span> is the
+published ancestor of the BB84 states used here. The splitting-game
+formalism is that of Broadbent–Lord <span class="citation"
+data-cites="bl20"></span> (their oracle lower/upper bounds are for
+general messages; our contribution is not a competitor to their or to
+the recent unconditional schemes <span class="citation"
+data-cites="as26 bbc26 bcr26"></span>, which encrypt quantum messages,
+whereas here the message is classical and the uncloneable register plays
+the role of the pad). The QFHE-for-classical-circuits setting and its
+blind-evaluation structure are from Broadbent–Jeffery <span
+class="citation" data-cites="bj15"></span>. The dual certificate method
+for bounding two-player quantum games is standard
+(Choi–Jamio<span>ł</span>kowski representation and semidefinite-program
+weak duality; see Watrous <span class="citation"
+data-cites="watrous"></span> for the channel formalism).</p>
+<h1 id="sec:prelim">Preliminaries</h1>
+<p>All qubit registers are listed with qubit 0 as the most significant
+tensor factor in statevector conventions of the code
+(<code>qfhe/sim.py</code>). For <span class="math inline">\(\theta \in
+\{0,1\}\)</span> and <span class="math inline">\(b \in \{0,1\}\)</span>
+write <span class="math display">\[|u_b^\theta\rangle \;=\;
+H^{\theta}|b\rangle, \qquad
+  |u_0^0\rangle=|0\rangle,\ |u_1^0\rangle=|1\rangle,\
+  |u_0^1\rangle=|+\rangle,\ |u_1^1\rangle=|-\rangle ,\]</span> and for
+strings <span class="math inline">\(u = u_1 \oplus a\)</span> denotes
+bitwise XOR. A boolean circuit <span class="math inline">\(C\)</span> is
+a gate list over <span
+class="math inline">\(\{\mathsf{NOT},\mathsf{AND}\}\)</span> acting on
+<span class="math inline">\(n\)</span> wires; <span
+class="math inline">\(\mathsf{AND}\)</span> is applied as <span
+class="math inline">\(w_t \mathrel{|}= w_a \wedge w_b\)</span> with the
+target wire distinct from both controls (the code raises otherwise,
+since XOR-accumulated <span class="math inline">\(\mathsf{AND}\)</span>
+with <span class="math inline">\(t \in \{a,b\}\)</span> is classically
+irreversible). A channel <span class="math inline">\(\Lambda:
+\mathcal{L}(\mathbb{C}^2) \to \mathcal{L}(\mathbb{C}^4)\)</span> has
+Choi matrix <span class="math inline">\(J_\Lambda = \sum_{i,j}
+|i\rangle\langle j| \otimes \Lambda(|i\rangle\langle j|)\)</span>, so
+that <span class="math inline">\(\Lambda\)</span> is completely positive
+iff <span class="math inline">\(J_\Lambda \succeq 0\)</span> and
+trace-preserving iff <span class="math inline">\(\operatorname{Tr}_{AB}
+J_\Lambda = I_2\)</span> <span class="citation"
+data-cites="watrous"></span>.</p>
+<h1 id="sec:scheme">The scheme</h1>
+<div id="def:pad" class="definition">
+<p><strong>Definition 1</strong> (uncloneable pad). For a basis key
+<span class="math inline">\(\theta \in \{0,1\}^n\)</span> and value
+<span class="math inline">\(a \in \{0,1\}^n\)</span> the pad register is
+<span class="math inline">\(\mathrm{Pad}_\theta(a) =
+\bigotimes_{j=1}^{n} |u_{a_j}^{\theta_j}\rangle\)</span>. More generally
+the key may be a random Clifford circuit <span
+class="math inline">\(V\)</span> on <span
+class="math inline">\(n\)</span> qubits with <span
+class="math inline">\(\mathrm{Pad}_V(a) = V|a\rangle\)</span>
+(<code>qfhe/pad.py</code>, functions <code>bb84_encode</code> and
+<code>clifford</code>); both are key-randomised Cliffords applied to a
+<span class="math inline">\(Z\)</span>-basis string.</p>
+</div>
+<div id="def:scheme" class="definition">
+<p><strong>Definition 2</strong> (UP-QFHE). <span
+class="math inline">\(\mathop{\mathrm{KeyGen}}(1^n)\)</span>: sample
+<span class="math inline">\(\theta \leftarrow \{0,1\}^n\)</span>
+uniformly; key <span class="math inline">\(k=\theta\)</span>.</p>
+<p><span class="math inline">\(\mathop{\mathrm{Enc}}_k(x)\)</span> for
+<span class="math inline">\(x \in \{0,1\}^n\)</span>: sample pad <span
+class="math inline">\(a \leftarrow \{0,1\}^n\)</span> uniform; prepare
+the <em>payload</em> register in <span class="math inline">\(|x \oplus
+a\rangle\)</span> (<span class="math inline">\(Z\)</span> basis) and the
+<em>mask</em> register in <span
+class="math inline">\(\mathrm{Pad}_\theta(a)\)</span>. Ciphertext <span
+class="math inline">\(\mathsf{ct} = (\mathsf{pay},
+\mathsf{mask})\)</span>.</p>
+<p><span
+class="math inline">\(\mathop{\mathrm{Dec}}_k(\mathsf{ct})\)</span>:
+measure mask qubit <span class="math inline">\(j\)</span> in basis <span
+class="math inline">\(\theta_j\)</span> to recover <span
+class="math inline">\(a_j\)</span> (exact: the key holder knows the
+encoding basis); output <span class="math inline">\(x = p \oplus
+a\)</span> where <span class="math inline">\(p\)</span> is the read-out
+of the payload register.</p>
+</div>
+<p>Correctness is immediate: <span class="math inline">\(|x\oplus
+a\rangle\)</span> and <span
+class="math inline">\(\mathop{\mathrm{Dec}}\)</span>’s exact recovery of
+<span class="math inline">\(a\)</span> give <span
+class="math inline">\(x\)</span> with probability 1
+(<code>tests/test_scheme.py</code>).</p>
+<div id="def:eval" class="definition">
+<p><strong>Definition 3</strong> (homomorphic evaluation). Given a
+circuit <span class="math inline">\(C\)</span> over <span
+class="math inline">\(\{\mathsf{NOT},\mathsf{AND}\}\)</span> the
+evaluator, without touching the mask register, (i) applies the circuit
+physically to the payload qubits — <span
+class="math inline">\(\mathsf{NOT} \mapsto X\)</span>, <span
+class="math inline">\(\mathsf{AND} \mapsto \mathsf{CCX}\)</span> (<span
+class="math inline">\(\mathsf{CX}\)</span> when both controls coincide),
+and (ii) produces the classical transcript <span
+class="math inline">\(p_{\mathrm{out}} = C(p_{\mathrm{in}})\)</span>,
+where <span class="math inline">\(p_{\mathrm{in}}\)</span> is any
+read-out of the payload register before evaluation. The key holder
+computes <span class="math inline">\(C(x) = C(p_{\mathrm{in}} \oplus
+a)\)</span> from <span class="math inline">\(p_{\mathrm{in}}\)</span>
+and <span class="math inline">\(\mathop{\mathrm{Dec}}_k\)</span>.</p>
+</div>
+<p>Because the payload stays a <span
+class="math inline">\(Z\)</span>-basis state at every step, the physical
+pass and the transcript agree exactly, and neither is limited by depth:
+this is exact unbounded-depth homomorphic evaluation. The transcript is
+what Definition <a href="#def:eval" data-reference-type="ref"
+data-reference="def:eval">3</a> releases to make non-linear gates work
+without an oracle; for <span
+class="math inline">\(\mathsf{NOT}\)</span>-only circuits even that
+release is unnecessary (Lemma <a href="#lem:not"
+data-reference-type="ref" data-reference="lem:not">6</a>).</p>
+<div id="thm:secret" class="theorem">
+<p><strong>Theorem 4</strong> (uncloneability of the ciphertext).
+<em>Fix <span class="math inline">\(n\)</span> and any message <span
+class="math inline">\(x\)</span>. In the key-revealing splitting
+experiment of Definition <a href="#def:game" data-reference-type="ref"
+data-reference="def:game">7</a> applied to <span
+class="math inline">\(\mathop{\mathrm{Enc}}_k(x)\)</span> with honest
+decoders, two isolated parties both output the full message <span
+class="math inline">\(C(x)\)</span> with probability at most <span
+class="math inline">\((3/4)^n\)</span>, for every joint quantum attack
+on the ciphertext.</em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> The payload register is a <span
+class="math inline">\(Z\)</span>-basis state, so the adversary may copy
+and distribute it perfectly; no strategy can do better than that, and
+the payload carries no uncloneable content. Each decoder’s guess of
+<span class="math inline">\(x\)</span> (hence of <span
+class="math inline">\(C(x)\)</span>) is a function of its own mask half
+and <span class="math inline">\(\theta\)</span>; both decoders succeed
+at the full string iff both recover all <span
+class="math inline">\(n\)</span> pad bits correctly, which is exactly
+the <span class="math inline">\(n\)</span>-bit key-revealing game on
+<span class="math inline">\(\mathrm{Pad}_\theta(a)\)</span> bounded by
+<span class="math inline">\((3/4)^n\)</span> in Corollary <a
+href="#cor:nbit" data-reference-type="ref"
+data-reference="cor:nbit">11</a>. ◻</p>
+</div>
+<div id="thm:sec2" class="theorem">
+<p><strong>Theorem 5</strong> (perfect input confidentiality of the
+transcript). <em>For every circuit <span
+class="math inline">\(C\)</span>, the evaluator’s complete view <span
+class="math inline">\((p_{\mathrm{in}}, p_{\mathrm{out}}) = (u,
+C(u))\)</span> with <span class="math inline">\(u\)</span> uniform on
+<span class="math inline">\(\{0,1\}^n\)</span>, is identically
+distributed for all messages <span class="math inline">\(x\)</span>. In
+particular no computationally unbounded adversary learns anything about
+<span class="math inline">\(x\)</span> from the view; and the payload
+register alone, averaged over <span class="math inline">\(a\)</span>, is
+maximally mixed.</em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> <span class="math inline">\(a\)</span> is uniform and
+independent of <span class="math inline">\(x\)</span>, so <span
+class="math inline">\(p_{\mathrm{in}} = x \oplus a\)</span> is uniform
+and independent of <span class="math inline">\(x\)</span>, and <span
+class="math inline">\(p_{\mathrm{out}}\)</span> is a deterministic
+function of <span class="math inline">\(p_{\mathrm{in}}\)</span>. Hence
+the view is <span class="math inline">\((u, C(u))\)</span> for uniform
+<span class="math inline">\(u\)</span>, regardless of <span
+class="math inline">\(x\)</span>. The payload ensemble <span
+class="math inline">\(\{ |x \oplus a\rangle : a
+\leftarrow \{0,1\}^n\}\)</span> is the uniform mixture over all <span
+class="math inline">\(2^n\)</span> basis states. ◻</p>
+</div>
+<div id="lem:not" class="lemma">
+<p><strong>Lemma 6</strong> (blind frame flip). <em>Applying <span
+class="math inline">\(X\)</span> to payload qubit <span
+class="math inline">\(j\)</span> flips the encrypted bit <span
+class="math inline">\(x_j\)</span> whatever the key <span
+class="math inline">\(\theta\)</span> and pad <span
+class="math inline">\(a\)</span> are: <span class="math inline">\(p_j
+\mapsto p_j \oplus 1\)</span> and <span
+class="math inline">\(\mathop{\mathrm{Dec}}_k\)</span> outputs <span
+class="math inline">\(x \oplus e_j\)</span>. Thus <span
+class="math inline">\(\mathsf{NOT}\)</span> gates need no access to the
+mask register at all, quantumly or classically.</em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> The payload is a <span
+class="math inline">\(Z\)</span>-basis state independent of the mask;
+<span class="math inline">\(X\)</span> complements its bit, and XOR
+decryption is equivariant under that complement. Verified as a physical
+circuit identity over random keys in<br />
+<code>tests/test_scheme.py::test_x_frame_flips_pad_bit_blindly</code>. ◻</p>
+</div>
+<h1 id="sec:game">The key-revealing splitting game</h1>
+<div id="def:game" class="definition">
+<p><strong>Definition 7</strong> (one-bit game <span
+class="math inline">\(G_1\)</span>). A bit is encoded as <span
+class="math inline">\(|u\rangle \in
+\{|0\rangle,|1\rangle,|+\rangle,|-\rangle\}\)</span> with each state
+chosen with probability <span class="math inline">\(1/4\)</span>; the
+basis key <span class="math inline">\(\theta\)</span> is <em>not</em>
+revealed to the adversary, who holds one copy and applies any CPTP map
+<span class="math inline">\(\Lambda: \mathbb{C}^2 \to \mathbb{C}^2
+\otimes \mathbb{C}^2\)</span> producing systems <span
+class="math inline">\(A\)</span> and <span
+class="math inline">\(B\)</span>. The two decoders are then each shown
+<span class="math inline">\(\theta\)</span> and measure their system in
+the <span class="math inline">\(\theta\)</span> basis (honest
+decryption); the adversaries win iff <em>both</em> outputs equal the
+encoded bit. Let <span class="math inline">\(p_1^\ast\)</span> be the
+supremum over all attacks, and <span
+class="math inline">\(p_n^\ast\)</span> the analogous value for <span
+class="math inline">\(n\)</span> independent pads with arbitrary joint
+attacks and both decoders required to get all <span
+class="math inline">\(n\)</span> bits.</p>
+</div>
+<p>For real states <span class="math inline">\(u\)</span> the winning
+probability of an attack <span class="math inline">\(\Lambda\)</span> is
+<span class="math display">\[\label{eq:objective}
+  p(\Lambda) \;=\; \frac14 \sum_{u} \langle uu|\,
+\Lambda(|u\rangle\langle u|)\, |uu\rangle
+  \;=\; \operatorname{Tr}\!\big[M\, J_\Lambda\big], \qquad
+  M = \frac14 \sum_u |u\rangle\langle u| \otimes |uu\rangle\langle uu|
+,\]</span> the sum over the four BB84 states. Every CPTP map is a
+physically realisable split (Stinespring with an ancilla discarded
+inside the decoder’s lab), so <span class="math inline">\(p_1^\ast =
+\max\{\operatorname{Tr}[MJ] : J \succeq 0,\ \operatorname{Tr}_{AB} J =
+I_2\}\)</span>.</p>
+<div id="prop:naive" class="proposition">
+<p><strong>Proposition 8</strong> (naive attacks). <em>Copy-in-<span
+class="math inline">\(Z\)</span> (isometry <span
+class="math inline">\(|b\rangle \mapsto |bb\rangle\)</span>) and
+copy-in-<span class="math inline">\(X\)</span> each win with probability
+<span class="math inline">\(5/8\)</span>; discarding and emitting a
+fixed state wins <span class="math inline">\(3/8\)</span>. For
+copy-in-<span class="math inline">\(Z\)</span> the per-state
+probabilities are <span class="math inline">\((1, 1, \tfrac12,
+0)\)</span> on <span class="math inline">\((|0\rangle, |1\rangle,
+|+\rangle, |-\rangle)\)</span>: the two halves of <span
+class="math inline">\(|+\rangle\)</span> are perfectly correlated in the
+<span class="math inline">\(X\)</span> basis but only half the time
+equal to <span class="math inline">\(|+\rangle\)</span>, and <span
+class="math inline">\(|-\rangle\)</span> is anti-correlated and always
+loses.</em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> Direct evaluation of <a href="#eq:objective"
+data-reference-type="eqref"
+data-reference="eq:objective">[eq:objective]</a>; computed as
+<code>p_win_isometry</code> in <code>qfhe/games.py</code> and asserted
+to <span class="math inline">\(10^{-12}\)</span> in
+<code>tests/test_games.py</code>. ◻</p>
+</div>
+<div id="prop:iso" class="proposition">
+<p><strong>Proposition 9</strong> (coherent isometries are still not
+optimal). <em>Optimising <a href="#eq:objective"
+data-reference-type="eqref"
+data-reference="eq:objective">[eq:objective]</a> over splitting
+<em>isometries</em> <span class="math inline">\(\mathbb{C}^2 \to
+\mathbb{C}^4\)</span> by multi-start numerical search finds value <span
+class="math inline">\(\ge 0.72855\)</span>, strictly between <span
+class="math inline">\(5/8\)</span> and <span
+class="math inline">\(3/4\)</span>; general channels do strictly better
+(Theorem <a href="#thm:value" data-reference-type="ref"
+data-reference="thm:value">10</a>), so the isometry-restricted value is
+a lower bound only.</em></p>
+</div>
+<div id="thm:value" class="theorem">
+<p><strong>Theorem 10</strong> (the game value is exactly <span
+class="math inline">\(3/4\)</span>). <em><span
+class="math inline">\(p_1^\ast = 3/4\)</span>. The maximum is attained
+by the explicit channel <span class="math inline">\(\Lambda^\ast(\rho) =
+A_1 \rho A_1^\dagger + A_2 \rho A_2^\dagger\)</span> displayed in the
+proof; it is not attained by any isometric split, nor by measure-<span
+class="math inline">\(Z\)</span>-and-reprepare, which only reaches <span
+class="math inline">\(5/8\)</span>.</em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> <strong>Upper bound.</strong> Let <span
+class="math inline">\(Y = \tfrac38 I_2\)</span> and let <span
+class="math inline">\(M\)</span> be as in <a href="#eq:objective"
+data-reference-type="eqref"
+data-reference="eq:objective">[eq:objective]</a>. Appendix <a
+href="#app:cert" data-reference-type="ref"
+data-reference="app:cert">6</a> proves the gap matrix <span
+class="math inline">\(S := Y \otimes I_4 - M\)</span> is positive
+semidefinite, using only exact rational arithmetic: <span
+class="math inline">\(16M\)</span> is an explicit integer matrix and
+<span class="math inline">\(\chi_M(\lambda) =
+\lambda^4 (\lambda - \tfrac18)^2 (\lambda - \tfrac38)^2\)</span>, so
+every eigenvalue of <span class="math inline">\(M\)</span> is at most
+<span class="math inline">\(\tfrac38\)</span>. For any channel <span
+class="math inline">\(\Lambda\)</span> with Choi matrix <span
+class="math inline">\(J\)</span>: <span
+class="math display">\[p(\Lambda) = \operatorname{Tr}[MJ] \;\le\;
+\operatorname{Tr}\big[(Y \otimes I_4)\, J\big]
+  \;=\; \operatorname{Tr}\big[Y \underbrace{\operatorname{Tr}_{AB} J}_{=
+I_2}\big] \;=\; \operatorname{Tr}Y \;=\; \tfrac34 ,\]</span> where the
+inequality is <span class="math inline">\(J \succeq 0\)</span> and <span
+class="math inline">\(S \succeq 0\)</span>. This is SDP weak duality
+with an explicit dual-feasible point.</p>
+<p><strong>Lower bound: an explicit optimal channel.</strong> Set <span
+class="math inline">\(s := 1/\sqrt{12}\)</span> and, in the
+computational basis (input <span class="math inline">\(\to\)</span>
+output <span class="math inline">\(\lvert a\rangle_A\lvert
+b\rangle_B\)</span>, index <span class="math inline">\(2a + b\)</span>),
+<span class="math display">\[A_1 \;=\; s \begin{pmatrix} 3&amp;0\\
+0&amp;1\\ 0&amp;1\\ 1&amp;0\end{pmatrix},
+\qquad
+A_2 \;=\; (X \otimes X)\, A_1\, X \;=\; s \begin{pmatrix} 0&amp;1\\
+1&amp;0\\ 1&amp;0\\ 0&amp;3
+\end{pmatrix}.\]</span> Equivalently <span
+class="math inline">\(A_1\lvert 0\rangle = (3\lvert 00\rangle + \lvert
+11\rangle)/
+\sqrt{12}\)</span>, <span class="math inline">\(A_1\lvert 1\rangle =
+(\lvert 01\rangle + \lvert 10\rangle)/
+\sqrt{12}\)</span>, and <span class="math inline">\(A_2\)</span> is
+<span class="math inline">\(A_1\)</span> with the input bit and both
+output bits flipped. Trace preservation is direct: <span
+class="math inline">\(A_1^\dagger A_1 = \operatorname{diag}(\tfrac56,
+\tfrac16)\)</span> and <span class="math inline">\(A_2^\dagger
+A_2 = \operatorname{diag}(\tfrac16, \tfrac56)\)</span>, whose sum is
+<span class="math inline">\(I_2\)</span>. (Neither is a scalar multiple
+of <span class="math inline">\(I\)</span>, so <span
+class="math inline">\(\Lambda^\ast\)</span> is a genuine channel, not an
+isometry.) Winning probabilities: the amplitude of <span
+class="math inline">\(\Lambda^\ast\)</span>’s Kraus images on <span
+class="math inline">\(\lvert uu\rangle\)</span> gives <span
+class="math display">\[P_{\mathrm{win}}(0) =
+\Big|\tfrac{3}{\sqrt{12}}\Big|^2 = \tfrac34, \qquad
+P_{\mathrm{win}}(1) = \Big|\tfrac{3}{\sqrt{12}}\Big|^2 = \tfrac34 \
+\text{via } A_2,\]</span> and for <span
+class="math inline">\(\lvert\pm\rangle\)</span>, both branches
+contribute amplitude <span class="math inline">\(\pm
+3/\sqrt{24}\)</span> on <span class="math inline">\(\lvert
+\pm,\pm\rangle\)</span>, so <span
+class="math inline">\(P_{\mathrm{win}}(\pm) =
+\tfrac{9}{24} + \tfrac{9}{24} = \tfrac34\)</span>. Hence <span
+class="math inline">\(p_1(\Lambda^\ast) = \tfrac34\)</span>, and with
+the upper bound, <span class="math inline">\(p_1^\ast =
+\tfrac34\)</span> exactly. In SDP language this is complementary
+slackness: <span class="math inline">\(\operatorname{vec}(A_1),
+\operatorname{vec}(A_2)\)</span> are exactly the two basis vectors
+spanning <span class="math inline">\(\ker\big(\tfrac38 I_{16} -
+M\big)\)</span> (Appendix <a href="#app:cert" data-reference-type="ref"
+data-reference="app:cert">6</a>).</p>
+<p><strong>Numerics.</strong> A multi-start Kraus search (rank 2, which
+suffices for qubit <span class="math inline">\(\to\)</span> two-qubit
+channels) converges to value <span class="math inline">\(0.75 +
+O(10^{-13})\)</span>, the <span
+class="math inline">\(\pm10^{-13}\)</span> slack being the
+trace-preservation tolerance of the constrained optimiser
+(<code>channel_splitting_value</code>, <code>results/games.json</code>);
+its fixed points have entries in <span class="math inline">\(\{0, \pm 1,
+\pm 3\}/\sqrt{12}\)</span>, i.e. the search rediscovers <span
+class="math inline">\(\Lambda^\ast\)</span>, which
+<code>optimal_channel</code> implements exactly and
+<code>tests/test_games.py</code> re-verifies to machine precision (trace
+preservation, value <span class="math inline">\(3/4\)</span> on each of
+the four states, and <span class="math inline">\(\operatorname{vec}(A_k)
+\in \ker(\tfrac38 I - M)\)</span>). The optimum is not reached by any
+isometric split: equality in the upper bound forces <span
+class="math inline">\(\operatorname{vec}(V)\)</span> into the <span
+class="math inline">\(3/8\)</span>-eigenspace of <span
+class="math inline">\(M\)</span>, spanned by <span
+class="math inline">\((3|000\rangle + |011\rangle + |101\rangle +
+|110\rangle)/\sqrt{12}\)</span> and <span
+class="math inline">\((|001\rangle + |010\rangle + |100\rangle +
+3|111\rangle)/\sqrt{12}\)</span>: an <span
+class="math inline">\(\alpha\beta\)</span>-combination is of the form
+<span class="math inline">\(\operatorname{vec}(V)\)</span> only if <span
+class="math inline">\(\langle V0 | V1\rangle = \alpha\bar\beta/6 =
+0\)</span>, and <span class="math inline">\(\alpha = 0\)</span> or <span
+class="math inline">\(\beta = 0\)</span> breaks normalisation of <span
+class="math inline">\(V|0\rangle\)</span> or <span
+class="math inline">\(V|1\rangle\)</span>. So no isometry attains <span
+class="math inline">\(3/4\)</span> (the best found numerically is <span
+class="math inline">\(0.72855\ldots\)</span>, Proposition <a
+href="#prop:iso" data-reference-type="ref"
+data-reference="prop:iso">9</a>), and measure-<span
+class="math inline">\(Z\)</span>-and-reprepare achieves only <span
+class="math inline">\(\tfrac14(1 + 1 + \tfrac14 + \tfrac14) =
+5/8\)</span>. ◻</p>
+</div>
+<div id="cor:nbit" class="corollary">
+<p><strong>Corollary 11</strong> (<span class="math inline">\(n\)</span>
+pads). <em><span class="math inline">\(p_n^\ast = (3/4)^n\)</span>: no
+joint attack on the <span class="math inline">\(n\)</span>-qubit pad
+register (including entangling splits and collective measurements) does
+better, and the bound is attained by tensoring the optimal one-bit
+channel.</em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> The <span class="math inline">\(n\)</span>-bit
+objective operator is <span class="math inline">\(M_n = M^{\otimes
+n}\)</span> (winning all bits is the product of winning each coordinate
+game), and <span class="math inline">\(S_1 \succeq 0\)</span> tensors to
+<span class="math inline">\(S_n = Y^{\otimes n} \otimes I_{4^n} - M_n
+\succeq 0\)</span>. For any channel <span
+class="math inline">\(\Lambda_n\)</span> with Choi matrix <span
+class="math inline">\(J_n\)</span>: <span
+class="math inline">\(p_n(\Lambda_n) \le \operatorname{Tr}[(Y^{\otimes
+n} \otimes I) J_n] = \operatorname{Tr}[Y^{\otimes n}] =
+(3/4)^n\)</span>, using <span
+class="math inline">\(\operatorname{Tr}_{AB} J_n = I_{2^n}\)</span>.
+Conversely, the channel <span
+class="math inline">\(\Lambda^\ast\)</span> of Theorem <a
+href="#thm:value" data-reference-type="ref"
+data-reference="thm:value">10</a> attains <span
+class="math inline">\(3/4\)</span> exactly; its <span
+class="math inline">\(n\)</span>-fold tensor product is trace-preserving
+and wins each coordinate independently with probability <span
+class="math inline">\(3/4\)</span>, so the upper bound is attained:
+<span class="math inline">\(p_n^\ast = (3/4)^n\)</span>. The empirical
+scheme-specific attack below (naive per-qubit <span
+class="math inline">\(Z\)</span> copy) sits at <span
+class="math inline">\((5/8)^n\)</span>. ◻</p>
+</div>
+<h2 id="numbers-computed-by-the-repository">Numbers computed by the
+repository</h2>
+<p>All values in this subsection are produced by
+<code>scripts/run_games.py</code> (fixed seeds) into
+<code>results/games.json</code>, and re-checked by
+<code>tests/test_games.py</code>. Table <a href="#tab:onebit"
+data-reference-type="ref" data-reference="tab:onebit">1</a> lists the
+one-bit game; Figure <a href="#fig:nbit" data-reference-type="ref"
+data-reference="fig:nbit">1</a> and Table <a href="#tab:nbit"
+data-reference-type="ref" data-reference="tab:nbit">2</a> show the
+end-to-end <span class="math inline">\(n\)</span>-bit scheme game, in
+which the ciphertext of Definition <a href="#def:scheme"
+data-reference-type="ref" data-reference="def:scheme">2</a> is split by
+the naive <span class="math inline">\(Z\)</span>-copy isometry on each
+pad qubit (implemented by <code>scheme_splitting_game</code>, whose
+per-bit bound is therefore <span
+class="math inline">\((5/8)^n\)</span>).</p>
+<div id="tab:onebit">
+<table>
+<caption>One-bit game <span class="math inline">\(G_1\)</span>. The gap
+matrix spectrum <span class="math inline">\(\{0,0,\tfrac14,\tfrac14,
+\tfrac38,\tfrac38,\tfrac38,\tfrac38\}\)</span> (Appendix <a
+href="#app:cert" data-reference-type="ref"
+data-reference="app:cert">6</a>) certifies the upper bound; the
+two-dimensional zero eigenspace of the gap is exactly <span
+class="math inline">\(\operatorname{span}\{\operatorname{vec}(A_1),
+\operatorname{vec}(A_2)\}\)</span>, the Kraus pair of <span
+class="math inline">\(\Lambda^\ast\)</span> (complementary
+slackness).</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">attack</th>
+<th style="text-align: right;">value</th>
+<th style="text-align: left;">method</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">copy in <span
+class="math inline">\(Z\)</span> / copy in <span
+class="math inline">\(X\)</span> (isometries)</td>
+<td style="text-align: right;"><span class="math inline">\(0.625 =
+5/8\)</span></td>
+<td style="text-align: left;">exact formula</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">discard, emit fixed state</td>
+<td style="text-align: right;"><span class="math inline">\(0.375 =
+3/8\)</span></td>
+<td style="text-align: left;">exact formula</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">best isometry found (40 restarts)</td>
+<td style="text-align: right;"><span
+class="math inline">\(0.72855\ldots\)</span></td>
+<td style="text-align: left;">numerics, lower bound</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">explicit channel <span
+class="math inline">\(\Lambda^\ast\)</span>, <span
+class="math inline">\(p_1(\Lambda^\ast)\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(0.75\)</span>
+exact</td>
+<td style="text-align: left;">analytic, Thm. <a href="#thm:value"
+data-reference-type="ref" data-reference="thm:value">10</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">best CPTP channel found (Kraus rank
+2)</td>
+<td style="text-align: right;"><span
+class="math inline">\(0.75000000000024\)</span></td>
+<td style="text-align: left;">numerics</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">dual certificate <span
+class="math inline">\(Y = \tfrac38 I_2\)</span>, <span
+class="math inline">\(\operatorname{Tr}Y\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(0.75\)</span>
+exact</td>
+<td style="text-align: left;">analytic, App. <a href="#app:cert"
+data-reference-type="ref" data-reference="app:cert">6</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">dual search certified bound</td>
+<td style="text-align: right;"><span class="math inline">\(0.75 +
+4.1\times 10^{-9}\)</span></td>
+<td style="text-align: left;">numerics</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="tab:nbit">
+<table>
+<caption><span class="math inline">\(n\)</span>-bit scheme game with the
+naive per-qubit <span class="math inline">\(Z\)</span>-copy attack;
+<span class="math inline">\(p_{\text{both}}\)</span> agrees with <span
+class="math inline">\((5/8)^n\)</span> within statistical noise (<span
+class="math inline">\(\pm 0.006\)</span> at <span
+class="math inline">\(1\sigma\)</span>, 4000 trials), and both are far
+below the information-theoretic ceiling <span
+class="math inline">\((3/4)^n\)</span>.</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;"><span
+class="math inline">\(n\)</span></th>
+<th style="text-align: right;">trials</th>
+<th style="text-align: right;"><span
+class="math inline">\(p_{\text{both}}\)</span></th>
+<th style="text-align: right;"><span class="math inline">\(p_{\ge
+1}\)</span></th>
+<th style="text-align: right;">bound <span
+class="math inline">\((5/8)^n\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4000</td>
+<td style="text-align: right;">0.2545</td>
+<td style="text-align: right;">0.6045</td>
+<td style="text-align: right;">0.2441</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4000</td>
+<td style="text-align: right;">0.15625</td>
+<td style="text-align: right;">0.4815</td>
+<td style="text-align: right;">0.1526</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4000</td>
+<td style="text-align: right;">0.104</td>
+<td style="text-align: right;">0.3975</td>
+<td style="text-align: right;">0.0954</td>
+</tr>
+</tbody>
+</table>
+</div>
+<figure id="fig:nbit">
+<img src="../results/splitting_game.png" style="width:70.0%" />
+<figcaption><span class="math inline">\(p_{\text{both}}\)</span> versus
+<span class="math inline">\(n\)</span> (log scale): empirical scheme
+game, the <span class="math inline">\((5/8)^n\)</span> attack bound and
+the <span class="math inline">\((3/4)^n\)</span> theorem
+ceiling.</figcaption>
+</figure>
+<p>Scheme-level correctness and confidentiality numbers from
+<code>scripts/run_scheme.py</code> (<code>results/scheme.json</code>):
+20/20 round trips on the demo circuit (both pad instantiations); 60/60
+correct evaluations on random circuits, each also verified against an
+independent statevector simulation of the physical circuit; linear
+scaling <span class="math inline">\(n = 10\)</span> to <span
+class="math inline">\(10^4\)</span> in transcript mode with all outputs
+correct (<span class="math inline">\(7.6\,\mathrm{ms}\)</span> at <span
+class="math inline">\(n=10^4\)</span>); and a confidentiality check
+(<span class="math inline">\(n = 6\)</span>, <span
+class="math inline">\(4000\)</span> samples) whose empirical
+distribution of the transcript deviates from the ideal
+uniform-transcript distribution by at most <span
+class="math inline">\(4.9\times10^{-3}\)</span>, and from message to
+message by at most <span class="math inline">\(6.7\times10^{-3}\)</span>
+— statistical noise at that sample size.</p>
+<h1 id="sec:scope">Scope, limitations and what is new</h1>
+<p><strong>Scope.</strong> Classical messages; one-time use of <span
+class="math inline">\((\theta, a)\)</span> (the pad <span
+class="math inline">\(a\)</span> is a one-time pad, so key reuse would
+break confidentiality as in any OTP); private-key setting; circuits over
+<span class="math inline">\(\{\mathsf{NOT},\mathsf{AND}\}\)</span> on
+<span class="math inline">\(n\)</span> wires with distinct <span
+class="math inline">\(\mathsf{AND}\)</span> targets — the
+Broadbent–Jeffery <span class="citation" data-cites="bj15"></span>
+setting. Security is against a single ciphertext held by one adversary
+who splits it once, then both parties see <span
+class="math inline">\(\theta\)</span> (the key-revealing game of <span
+class="citation" data-cites="bl20"></span>); decoders are honest (<span
+class="math inline">\(\theta\)</span>-basis measurement). Allowing the
+decoders arbitrary POVMs can only raise the value; numerically the SDP
+search still returns <span class="math inline">\(3/4\)</span>, but the
+analytic certificate here is stated for honest decoding.</p>
+<p><strong>What is not claimed.</strong> Compactness (the transcript is
+released), multi-time security, quantum message encryption, and
+composition: this is a first-principles construction with complete
+quantitative analysis in a narrow setting, not a competitor to the
+general-message unconditional schemes of <span class="citation"
+data-cites="as26 bbc26"></span>. Its point is the fusion: the
+uncloneable register <em>is</em> the pad, evaluation is exact at any
+depth precisely because the payload is classical, and the uncloneability
+constant is not inherited from the literature but recomputed here — with
+a complete proof — for the game the scheme actually faces.</p>
+<h1 id="app:cert">The dual certificate</h1>
+<p>Order the <span class="math inline">\(8\)</span>-dimensional space as
+input qubit <span class="math inline">\(\otimes\)</span> output pair in
+the basis <span class="math inline">\((|0\rangle,|1\rangle) \otimes
+(|00\rangle,|01\rangle,|10\rangle,|11\rangle)\)</span>. Evaluating <span
+class="math inline">\(M = \tfrac14 \sum_u |u\rangle\langle u| \otimes
+|uu\rangle\langle uu|\)</span> over <span class="math inline">\(u \in
+\{|0\rangle,|1\rangle,|+\rangle,|-\rangle\}\)</span> gives the exact
+rational matrix <span class="math display">\[16\,M \;=\;
+  \begin{pmatrix}
+  5&amp;0&amp;0&amp;1&amp;0&amp;1&amp;1&amp;0\\
+  0&amp;1&amp;1&amp;0&amp;1&amp;0&amp;0&amp;1\\
+  0&amp;1&amp;1&amp;0&amp;1&amp;0&amp;0&amp;1\\
+  1&amp;0&amp;0&amp;1&amp;0&amp;1&amp;1&amp;0\\
+  0&amp;1&amp;1&amp;0&amp;1&amp;0&amp;0&amp;1\\
+  1&amp;0&amp;0&amp;1&amp;0&amp;1&amp;1&amp;0\\
+  1&amp;0&amp;0&amp;1&amp;0&amp;1&amp;1&amp;0\\
+  0&amp;1&amp;1&amp;0&amp;1&amp;0&amp;0&amp;5
+  \end{pmatrix},\]</span> which is real symmetric. Direct computation of
+the characteristic polynomial (exact rational arithmetic; reproduced by
+<code>sympy</code> in the repository and asserted numerically to <span
+class="math inline">\(10^{-12}\)</span> in
+<code>tests/test_games.py</code>) gives <span
+class="math display">\[\chi_M(\lambda) \;=\; \lambda^4 \left(\lambda -
+\tfrac18\right)^2
+  \left(\lambda - \tfrac38\right)^2 ,\]</span> so <span
+class="math inline">\(M \succeq 0\)</span> and <span
+class="math inline">\(\lambda_{\max}(M) = \tfrac38\)</span>. With <span
+class="math inline">\(Y = \tfrac38 I_2\)</span> the gap <span
+class="math inline">\(S = Y \otimes I_4 - M\)</span> has spectrum <span
+class="math inline">\(\{0, 0, \tfrac14, \tfrac14, \tfrac38, \tfrac38,
+\tfrac38, \tfrac38\} \subseteq
+[0,\infty)\)</span>, i.e. <span class="math inline">\(S \succeq
+0\)</span>, and <span class="math inline">\(\operatorname{Tr}Y =
+\tfrac34\)</span>: exactly the dual-feasible point used in Theorem <a
+href="#thm:value" data-reference-type="ref"
+data-reference="thm:value">10</a>. The kernel of <span
+class="math inline">\(S\)</span> is <span class="math inline">\(\ker S =
+\operatorname{span}\{\operatorname{vec}(A_1),
+\operatorname{vec}(A_2)\}\)</span>, where <span
+class="math inline">\(A_1, A_2\)</span> are the Kraus operators of <span
+class="math inline">\(\Lambda^\ast\)</span> from Theorem <a
+href="#thm:value" data-reference-type="ref"
+data-reference="thm:value">10</a> (they are orthonormal <span
+class="math inline">\(\tfrac38\)</span>-eigenvectors of <span
+class="math inline">\(M\)</span>, and the eigenspace is
+two-dimensional): complementary slackness <span
+class="math inline">\(\operatorname{tr}[J_{\Lambda^\ast} S] = 0\)</span>
+holds exactly, so primal and dual optima meet at <span
+class="math inline">\(3/4\)</span>. The repository asserts <span
+class="math inline">\(M \operatorname{vec}(A_k) = \tfrac38
+\operatorname{vec}(A_k)\)</span> numerically in
+<code>tests/test_games.py</code>.</p>
+<div class="thebibliography">
+<p><span>9</span> A. Broadbent and J. Lord, <em>Uncloneable Quantum
+Encryption via Oracles</em>, in 5th Conference on the Theory of Quantum
+Computation, Communication and Cryptography (TQC 2020), LIPIcs Vol. 158,
+Article 4, pp. 4:1–4:22, 2020. doi:10.4230/LIPIcs.TQC.2020.4.
+A. Broadbent and S. Jeffery, <em>Quantum Homomorphisms for Classical
+Circuits and Their Computational Power</em>, Quantum
+Info. Comput. 15(7–8):635–672, 2015. P. Ananth and A. Sahai,
+<em>Unconditional Unclonable Encryption</em>, arXiv:2607.21551, 2026.
+A. Bhattacharyya, A. Broadbent and E. Culf, <em>Statistically secure
+uncloneable encryption of arbitrary messages</em>, arXiv:2607.28561,
+2026. A. Broadbent, E. Culf and D. Rochette, <em>Optimal Untelegraphable
+Encryption and Implications for Uncloneable Encryption</em>,
+arXiv:2510.00903, 2025. C. H. Bennett and D. J. Wiesner, <em>Quantum
+cryptography based on Bell’s theorem</em>,
+Phys. Rev. Lett. 53:1921–1923, 1984. J. Watrous, <em>The Theory of
+Quantum Information</em>, Cambridge University Press, 2018.</p>
+</div>
+</body>
+</html>
